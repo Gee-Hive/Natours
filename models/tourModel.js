@@ -89,7 +89,7 @@ const tourSchema = new mongoose.Schema(
     createdAt: {
       type: Date,
       default: new Date(),
-      select: false,//to not display this field when being queried in db
+      select: false, //to not display this field when being queried in db
     },
 
     startDates: [Date],
@@ -139,6 +139,7 @@ const tourSchema = new mongoose.Schema(
 //tourSchema.index({ price:1 })//1 for ascending while -1 for descending
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' }); //for geospatial queries to point data to the specified start point(indexes)
 
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
@@ -146,9 +147,9 @@ tourSchema.virtual('durationWeeks').get(function () {
 
 //virtual populate(to displaying the reviews(ids) attached to a particular tour id)
 tourSchema.virtual('reviews', {
-  ref: 'Review',// here in the tour model we referencing the review model to this 
-  foreignField: 'tour', //to the review model, tour is the foreign field needed to 
-  localField: '_id',// to the review model, the tour _id is the local id.
+  ref: 'Review', // here in the tour model we referencing the review model to this
+  foreignField: 'tour', //to the review model, tour is the foreign field needed to
+  localField: '_id', // to the review model, the tour _id is the local id.
 });
 
 //Document Middleware:: runs before .save() and .create()

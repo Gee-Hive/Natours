@@ -93,3 +93,33 @@ exports.getMonthlyPlan = catchAsync(async function (req, res, next) {
     },
   });
 });
+
+exports.getToursWithin = catchAsync(async function (req, res, next) {
+  const { distance, latlng, unit } = req.params;
+
+  const { lat, lng } = latlng.split(','); // to seperate the query(latitude and longitude)
+
+  //                          calculated for metre  :  calculated for kilometre
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1; //this to be converted to radiance(divide our distance by radius of earth)
+
+  if (!lat || !lng) {
+    return next(
+      new AppError(
+        'please provide latitude and longitude in this format latlng',
+        400
+      )
+    );
+  }
+
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } }, //radius is the distance of earth.
+  }); //this geowithin function is to find a data(tour) within a certain geometric
+
+  res.status(200).json({
+    status: 'successful',
+    results: tours.length,
+    data: {
+      data: tours,
+    },
+  });
+});
