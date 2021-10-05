@@ -61,7 +61,10 @@ app.use(function (req, res, next) {
 //routes
 
 app.get('/', (req, res, next) => {
-  res.status(200).render('base');
+  res.status(200).render('base', {
+    tour: 'The Forest Hiker',
+    user: 'jonas',
+  });
 }); //for testing the pug functions created
 
 app.use('/api/v1/tours', tourRouter);
