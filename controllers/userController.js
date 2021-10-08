@@ -12,7 +12,7 @@ const filterObj = function (obj, ...allowedFields) {
   return newObj;
 };
 
-exports.updateMe = function (req, res, next) {
+exports.updateMe = async function (req, res, next) {
   //check if the user tries to update passwords instead of data
   if (req.body.password || req.body.passwordConfirm) {
     return next(new AppError('invalid route for update password', 400));
@@ -57,10 +57,77 @@ exports.createUser = function (req, res) {
   });
 };
 
-exports.getAllUsers = factory.getAll(User);
+exports.getAllUsers = catchAsync(async function (req, res, next) {
+  //To allow nested Get reviews on tours
+  // let filter = {};
+  // if (req.params.tourId) filter = { tour: req.params.tourId };
 
-exports.getUser = factory.getOne(User);
+  // //executing query
+  // const features = new APIFeatures(Model.find(filter), req.query)
+  //   .filter()
+  //   .sort()
+  //   .limitFields()
+  //   .paginate();
+  // //const doc = await features.query.explain(); //To help explain the index function in postman
+  const doc = await User.find();
+  // sending response
+  res.status(200).json({
+    status: 'success',
+    results: doc.length,
+    data: {
+      data: doc,
+    },
+  });
+});
 
-exports.updateUser = factory.updateOne(User); //do not update passwords with this
+exports.getUser = catchAsync(async function (req, res, next) {
+  let query = User.findById(req.params.id);
 
-exports.deleteUser = factory.deleteOne(User);
+  //if (popOptions) query = query.populate(popOptions);
+
+  const doc = await query;
+
+  if (!doc) {
+    return next(new AppError(`sorry cannot find current ID`, 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    requestedAt: req.requestTime,
+    data: {
+      data: doc,
+    },
+  });
+});
+
+exports.updateUser = catchAsync(async function (req, res, next) {
+  const doc = await User.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!doc) {
+    return next(new AppError(`sorry cannot find matching ID`, 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: doc,
+    },
+  });
+}); //do not update passwords with this
+
+exports.deleteUser = catchAsync(async function (req, res, next) {
+  const doc = await User.findByIdAndDelete(req.params.id);
+
+  if (!doc) {
+    return next(new AppError(`sorry cannot find matching ID`, 404));
+  }
+  res.status(204).json({
+    status: 'success',
+    data: {
+      data: null,
+    },
+  });
+});

@@ -11,15 +11,92 @@ exports.topfiveTours = function (req, res, next) {
   next();
 };
 
-exports.getAllTours = factory.getAll(Tour);
+exports.getAllTours = catchAsync(async function (req, res, next) {
+  //To allow nested Get reviews on tours
+  let filter = {};
+  if (req.params.tourId) filter = { tour: req.params.tourId };
 
-exports.getTour = factory.getOne(Tour, { path: 'reviews' });
+  //executing query
+  const features = new APIFeatures(Tour.find(filter), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  //const doc = await features.query.explain(); //To help explain the index function in postman
+  const doc = await features.query.explain();
+  // sending response
+  res.status(200).json({
+    status: 'success',
+    results: doc.length,
+    data: {
+      data: doc,
+    },
+  });
+});
 
-exports.createTour = factory.createOne(Tour);
+exports.getTour = catchAsync(async function (req, res, next) {
+  let query = Tour.findById(req.params.id).populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
 
-exports.updateTour = factory.updateOne(Tour);
+  const doc = await query;
 
-exports.deleteTour = factory.deleteOne(Tour);
+  if (!doc) {
+    return next(new AppError(`sorry cannot find current ID`, 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    requestedAt: req.requestTime,
+    data: {
+      data: doc,
+    },
+  });
+});
+
+exports.createTour = catchAsync(async function (req, res, next) {
+  const doc = await Tour.create(req.body);
+
+  res.status(201).json({
+    status: 'success',
+    data: {
+      data: doc,
+    },
+  });
+});
+//update
+exports.updateTour = catchAsync(async function (req, res, next) {
+  const doc = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!doc) {
+    return next(new AppError(`sorry cannot find matching ID`, 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: doc,
+    },
+  });
+});
+//delete
+exports.deleteTour = catchAsync(async function (req, res, next) {
+  const doc = await Tour.findByIdAndDelete(req.params.id);
+
+  if (!doc) {
+    return next(new AppError(`sorry cannot find matching ID`, 404));
+  }
+  res.status(204).json({
+    status: 'success',
+    data: {
+      data: null,
+    },
+  });
+});
 
 exports.getTourStats = catchAsync(async function (req, res, next) {
   const stats = await Tour.aggregate([
