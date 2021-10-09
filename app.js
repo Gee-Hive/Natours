@@ -13,7 +13,7 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
-// const errorController = require('./controllers/errorController');
+const viewRouter = require('./routes/viewRoutes');
 const app = express();
 
 //Pug engine setup(frontend)
@@ -48,7 +48,18 @@ app.use(mongoSanitize());
 app.use(xss());
 
 //prevent paramter pollution, clean up query string
-app.use(hpp());
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingQuantity',
+      'ratingAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price',
+    ],
+  })
+);
 
 //serving static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -58,28 +69,8 @@ app.use(function (req, res, next) {
   next();
 });
 
-//routes
-
-app.get('/', (req, res, next) => {
-  res.status(200).render('base', {
-    tour: 'The Forest Hiker',
-    user: 'jonas',
-  });
-}); //for testing the pug functions created
-
-app.get('/overview', (req, res, next) => {
-  res.status(200).render('overview', {
-    title: 'All Tours',
-  });
-});
-
-app.get('/tours', (req, res, next) => {
-  res.status(200).render('tours', {
-    title: 'The Forest Hiker Tour',
-  });
-});
-
 //base routes
+app.use('/', viewRouter); //root url
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
