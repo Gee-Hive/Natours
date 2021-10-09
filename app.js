@@ -67,6 +67,19 @@ app.get('/', (req, res, next) => {
   });
 }); //for testing the pug functions created
 
+app.get('/overview', (req, res, next) => {
+  res.status(200).render('overview', {
+    title: 'All Tours',
+  });
+});
+
+app.get('/tours', (req, res, next) => {
+  res.status(200).render('tours', {
+    title: 'The Forest Hiker Tour',
+  });
+});
+
+//base routes
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
