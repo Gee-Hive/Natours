@@ -5,8 +5,6 @@ const tourController = require('./../controllers/tourController');
 const authController = require('./../controllers/authController');
 const reviewRouter = require('./../routes/reviewRoutes');
 
-// router.param('id', tourController.checkID);
-
 // for nested routes
 // router
 //   .route('/:tourId/reviews')
