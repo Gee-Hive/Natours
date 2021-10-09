@@ -36,8 +36,7 @@ exports.getAllTours = catchAsync(async function (req, res, next) {
 
 exports.getTour = catchAsync(async function (req, res, next) {
   let query = Tour.findById(req.params.id).populate({
-    path: 'guides',
-    select: '-__v -passwordChangedAt',
+    path: 'reviews',
   });
 
   const doc = await query;
