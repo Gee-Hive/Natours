@@ -5,8 +5,6 @@ const tourController = require('./../controllers/tourController');
 const authController = require('./../controllers/authController');
 const reviewRouter = require('./../routes/reviewRoutes');
 
-// router.param('id', tourController.checkID);
-
 // for nested routes
 // router
 //   .route('/:tourId/reviews')
@@ -31,6 +29,11 @@ router
     authController.restrictTo('admin', 'lead-guide', 'guide'),
     tourController.getMonthlyPlan
   );
+
+router
+  .route('/tours-within/:distance/center/:latlng/unit/:unit')
+  .get(tourController.getToursWithin);
+//this is also transformed like this (tours-within/233/center/-45,46/unit/mi)
 
 router
   .route('/')

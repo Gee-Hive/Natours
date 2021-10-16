@@ -68,10 +68,20 @@ reviewSchema.statics.calcAverageRatings = async function (tourId) {
       },
     },
   ]);
-  await Tour.findByIdAndUpdate(tourId, {
-    ratingsQuantity: stats(0).nRating,
-    ratingAverage: stats(0).avgRating,
-  });
+
+  if (stats.length > 0) {
+    // if the review id of a tour id exist, this function executes
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: stats(0).nRating,
+      ratingAverage: stats(0).avgRating,
+    });
+  } else {
+    await Tour.findByIdAndUpdate(tourId, {
+      //if the review id of a tour id doesnt exist, this function executes
+      ratingsQuantity: 0,
+      ratingAverage: 0,
+    });
+  }
 };
 
 reviewSchema.post('save', function (/*post does not have a next function*/) {
@@ -80,6 +90,14 @@ reviewSchema.post('save', function (/*post does not have a next function*/) {
   this.constructor.calcAverageRatings(this.tour);
 });
 
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  this.r = await this.findOne(); // before db
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function () {
+  await this.r.constructor.calcAverageRatings(this.r.tour); // this calculate average rating for review of an tour id after db
+});
 const Review = mongoose.model('Review', reviewSchema);
 
 module.exports = Review;

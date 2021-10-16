@@ -1,3 +1,4 @@
+const path = require('path'); //is a built in core module used to manipulate path names or folder
 const express = require('express');
 const { Router } = require('express');
 const morgan = require('morgan');
@@ -12,8 +13,12 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
-// const errorController = require('./controllers/errorController');
+const viewRouter = require('./routes/viewRoutes');
 const app = express();
+
+//Pug engine setup(frontend)
+app.set('view engine', 'pug'); //this function is for building the front page of the application
+app.set('views', path.join(__dirname, 'views')); //for directory of folder files
 
 // All Middlewares
 //To set Security  HTTP Header or setting
@@ -43,17 +48,29 @@ app.use(mongoSanitize());
 app.use(xss());
 
 //prevent paramter pollution, clean up query string
-app.use(hpp());
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingQuantity',
+      'ratingAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price',
+    ],
+  })
+);
 
 //serving static files
-app.use(express.static(`${__dirname}/public`));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function (req, res, next) {
   req.requestTime = new Date().toISOString();
   next();
 });
 
-//routes
+//base routes
+app.use('/', viewRouter); //root url
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
