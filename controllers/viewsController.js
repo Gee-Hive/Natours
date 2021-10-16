@@ -28,3 +28,16 @@ exports.getTour = catchAsync(async (req, res, next) => {
     tour,
   });
 });
+
+exports.getLoginForm = function (req, res) {
+  //               template name
+  res.status(200).render('login', {
+    title: 'Log into your account', //custom title to be displayed
+  });
+};
+
+exports.getSignupForm = function (req, res) {
+  res.status(200).render('signup', {
+    title: 'sign up to create your account',
+  });
+};
